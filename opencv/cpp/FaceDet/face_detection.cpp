@@ -45,7 +45,7 @@ int main(){
 	while(1){
 		capture>>src_img;
 //		waitKey(5);
-#if 0
+#if 1
 		cvtColor(src_img,gray_img,CV_BGR2GRAY);
 		equalizeHist(gray_img,gray_img);
 //		face_cascade.detectMultiScale(gray_img, faces, 1.1, 2, CV_HAAR_SCALE_IMAGE | CV_HAAR_DO_CANNY_PRUNING, cvSize(0,0), cvSize(500,500));

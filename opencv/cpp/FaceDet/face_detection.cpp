@@ -22,7 +22,8 @@ int main(){
 	CascadeClassifier face_cascade, eye_cascade;
         namedWindow("Result");
 
-	if(!face_cascade.load("/usr/local/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml")){
+//	if(!face_cascade.load("/usr/local/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml")){
+	if(!face_cascade.load("/usr/local/share/OpenCV/haarcascades/haarcascade_frontalface_alt.xml")){
 		cout<< " Error while loading cascade file for face" << endl;
 	return 1;
 	}
@@ -38,7 +39,7 @@ int main(){
 			cout<<"Error while opening camera"<<endl;
                		return 1;
                 }
-	capture.set(CV_CAP_PROP_BUFFERSIZE, 80);
+	capture.set(CV_CAP_PROP_BUFFERSIZE, 500);
 	Mat src_img, gray_img;
         
 //	capture>>src_img;
@@ -47,19 +48,19 @@ int main(){
 	bool count = true;
 
 	
-//	while(1){
-for(;;){
+	while(capture.read(src_img)){
+//for(;;){
 //              capture.retrieve(src_img);
-                capture>>src_img;
+//                capture>>src_img;
 //              bool gsuccess = capture.grab();
 //              capture.retrive(src_img);
 
-                bool bSuccess = capture.read(src_img); // read a new frame from video
-                if (!bSuccess) //if not success, break loop
-                {
-                        cout << "Cannot read the frame from video file" << endl;
-                        break;
-                }
+//                bool bSuccess = capture.read(src_img); // read a new frame from video
+//                if (!bSuccess) //if not success, break loop
+//                {
+//                        cout << "Cannot read the frame from video file" << endl;
+//                        break;
+//                }
 
 //              waitKey(5);
 clock_t begin = clock();
@@ -71,7 +72,7 @@ clock_t begin = clock();
                 cvtColor(src_img,gray_img,CV_BGR2GRAY);
                 equalizeHist(gray_img,gray_img);
 //              face_cascade.detectMultiScale(gray_img, faces, 1.1, 2, CV_HAAR_SCALE_IMAGE | CV_HAAR_DO_CANNY_PRUNING, cvSize(0,0), cvSize(500,500));
-                face_cascade.detectMultiScale(gray_img, faces, 1.1, 3, 0 | CASCADE_SCALE_IMAGE, Size(80,80));
+               face_cascade.detectMultiScale(gray_img, faces, 1.1, 10, 0 | CASCADE_SCALE_IMAGE, Size(80,80));
 
                 for(int i = 0; i<faces.size(); i++){
 
@@ -79,14 +80,17 @@ clock_t begin = clock();
                 Point pt2(faces[i].x, faces[i].y);
 
                 Mat faceROI = gray_img(faces[i]);
-                eye_cascade.detectMultiScale(faceROI, eyes, 1.1, 3, 0 |CASCADE_SCALE_IMAGE, Size(80,80));
+		if(!faces.empty()){
+
+                eye_cascade.detectMultiScale(faceROI, eyes, 1.1, 10, 0 |CASCADE_SCALE_IMAGE, Size(50,50));
                 for(size_t j=0; j<eyes.size(); j++){
                         Point center(faces[i].x + eyes[j].x + eyes[j].width * 0.5, faces[i].y + eyes[j].y + eyes[j].height * 0.5);
                         int radius = cvRound((eyes[j].width + eyes[i].height) * 0.25);
                         circle(src_img, center, radius, Scalar(255,0,0), 2, 8, 0);
                         }
-                if(!eyes.empty())
+//                if(!eyes.empty())
                 rectangle(src_img, pt1, pt2, Scalar(0,255,0),2, 8, 0);
+		}
                 }
 //count = false;
 
@@ -107,5 +111,12 @@ clock_t begin = clock();
 //	if((char)c == 37)
 //	break;
 	}						
+	
+    //destroy GUI windows
+    destroyAllWindows();
+
+    //delete capture object
+    capture.release();
+
 return 0;	
 }

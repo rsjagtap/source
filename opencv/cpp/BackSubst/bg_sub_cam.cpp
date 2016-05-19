@@ -4,7 +4,8 @@
 #include "opencv2/videoio.hpp"
 #include <opencv2/highgui.hpp>
 #include <opencv2/video.hpp>
-#include <opencv2/bgsegm.hpp>
+//#include <opencv2/bgsegm.hpp>
+#include <opencv2/video/background_segm.hpp>
 //C
 #include <stdio.h>
 //C++
@@ -89,12 +90,12 @@ int main(int argc, char* argv[])
  */
 void processVideo() {
     //create the capture object
-VideoCapture capture("rtsp://admin:12345@10.73.73.26/h264/ch1/main/av_stream");
-int fps = capture.get(CV_CAP_PROP_FPS);
-cout<<"O-FPS-"<<fps<<endl;
-capture.set(CV_CAP_PROP_FPS, 2);
-int mfps = capture.get(CV_CAP_PROP_FPS);
-cout<<"M-FPS-"<<mfps<<endl;
+VideoCapture capture("rtsp://admin:12345@10.73.73.26/h264/ch1/main/av_stream?tcp");
+//int fps = capture.get(CV_CAP_PROP_FPS);
+//cout<<"O-FPS-"<<fps<<endl;
+//capture.set(CV_CAP_PROP_FPS, 2);
+//int mfps = capture.get(CV_CAP_PROP_FPS);
+//cout<<"M-FPS-"<<mfps<<endl;
     if(!capture.isOpened()){
         //error in opening the video input
         //cerr << "Unable to open video file: " << videoFilename << endl;
@@ -122,7 +123,7 @@ cout<<"M-FPS-"<<mfps<<endl;
         imshow("Frame", frame);
         imshow("FG Mask MOG 2", fgMaskMOG2);
         //get the input from the keyboard
-        keyboard = waitKey(1);
+        keyboard = waitKey(30);
     }
     //delete capture object
     capture.release();

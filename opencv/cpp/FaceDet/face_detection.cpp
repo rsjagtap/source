@@ -39,7 +39,7 @@ int main(){
 			cout<<"Error while opening camera"<<endl;
                		return 1;
                 }
-	capture.set(CV_CAP_PROP_BUFFERSIZE, 500);
+//	capture.set(CV_CAP_PROP_BUFFERSIZE, 500);
 	Mat src_img, gray_img;
         
 //	capture>>src_img;
@@ -72,7 +72,7 @@ clock_t begin = clock();
                 cvtColor(src_img,gray_img,CV_BGR2GRAY);
                 equalizeHist(gray_img,gray_img);
 //              face_cascade.detectMultiScale(gray_img, faces, 1.1, 2, CV_HAAR_SCALE_IMAGE | CV_HAAR_DO_CANNY_PRUNING, cvSize(0,0), cvSize(500,500));
-               face_cascade.detectMultiScale(gray_img, faces, 1.26, 7, 0 | CASCADE_SCALE_IMAGE, Size(30,30));
+               face_cascade.detectMultiScale(gray_img, faces, 1.11, 3, 0 | CASCADE_SCALE_IMAGE, Size(10,10));
 
                 for(int i = 0; i<faces.size(); i++){
 
@@ -82,7 +82,7 @@ clock_t begin = clock();
                 Mat faceROI = gray_img(faces[i]);
 		if(!faces.empty()){
 
-                eye_cascade.detectMultiScale(faceROI, eyes, 1.11, 3, 0 |CASCADE_SCALE_IMAGE, Size(20,20));
+                eye_cascade.detectMultiScale(faceROI, eyes, 1.11, 3, 0 |CASCADE_SCALE_IMAGE, Size(10,10));
                 for(size_t j=0; j<eyes.size(); j++){
                         Point center(faces[i].x + eyes[j].x + eyes[j].width * 0.5, faces[i].y + eyes[j].y + eyes[j].height * 0.5);
                         int radius = cvRound((eyes[j].width + eyes[i].height) * 0.25);

@@ -24,7 +24,8 @@ int keyboard; //input from keyboard
 
 /** Function Headers */
 void help();
-void processVideo();
+void processVideo(char* videoFilename);
+//void processVideo();
 void processImages(char* firstFrameFilename);
 
 void help()
@@ -62,8 +63,8 @@ int main(int argc, char* argv[])
     namedWindow("FG Mask MOG 2");
 
     //create Background Subtractor objects
-    pMOG2 = createBackgroundSubtractorMOG2(); //MOG2 approach
-#if 0
+    pMOG2 = createBackgroundSubtractorMOG2(150,200,true); //MOG2 approach
+#if 1
     if(strcmp(argv[1], "-vid") == 0) {
         //input data coming from a video
         processVideo(argv[2]);
@@ -79,7 +80,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 #endif
-    processVideo();
+//    processVideo();
     //destroy GUI windows
     destroyAllWindows();
     return EXIT_SUCCESS;
@@ -88,17 +89,18 @@ int main(int argc, char* argv[])
 /**
  * @function processVideo
  */
-void processVideo() {
+void processVideo(char* videoFilename) {
     //create the capture object
-VideoCapture capture("rtsp://admin:12345@10.73.73.26/h264/ch1/main/av_stream?tcp");
-//int fps = capture.get(CV_CAP_PROP_FPS);
+//VideoCapture capture("rtsp://admin:12345@10.73.73.26/h264/ch1/main/av_stream?tcp");
+VideoCapture capture(videoFilename);
+capture.set(CV_CAP_PROP_BUFFERSIZE, 500);
 //cout<<"O-FPS-"<<fps<<endl;
-//capture.set(CV_CAP_PROP_FPS, 2);
+//capture.set(CV_CAP_PROP_FPS, 1);
 //int mfps = capture.get(CV_CAP_PROP_FPS);
 //cout<<"M-FPS-"<<mfps<<endl;
     if(!capture.isOpened()){
         //error in opening the video input
-        //cerr << "Unable to open video file: " << videoFilename << endl;
+        cerr << "Unable to open video file: " << videoFilename << endl;
         exit(EXIT_FAILURE);
     }
     //read input data. ESC or 'q' for quitting
@@ -130,7 +132,7 @@ VideoCapture capture("rtsp://admin:12345@10.73.73.26/h264/ch1/main/av_stream?tcp
 }
 
 
-#if 0
+#if 1
 /**
  * @function processImages
  */

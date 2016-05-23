@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.9)
-project( bg_sub_cam)
+project(bg_sub_cam)
 find_package( OpenCV REQUIRED )
 add_executable( bg_sub_cam bg_sub_cam.cpp )
 target_link_libraries( bg_sub_cam ${OpenCV_LIBS} )

@@ -20,7 +20,8 @@ using namespace std;
 
 int main(){
 	CascadeClassifier face_cascade, eye_cascade;
-        namedWindow("Result");
+        namedWindow("Result");	//To show resulatnt image in this window.
+	namedWindow("Crop");	//To show cropped image in this window.
 
 //	if(!face_cascade.load("/usr/local/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml")){
 	if(!face_cascade.load("/usr/local/share/OpenCV/haarcascades/haarcascade_frontalface_alt2.xml")){
@@ -46,6 +47,14 @@ int main(){
 
 	vector<Rect> faces, eyes;
 	bool count = true;
+	Rect crop;	//To create resize the grabbed faces and store the result  in this variable.
+	int faceCount = 0;
+	char imageToSave[50];	
+	string folderName = "Faces";
+	string folderRemoveCommand = "rm -rf" + folderName;
+        system(folderRemoveCommand.c_str());	//Remove the folder if already present
+	string folderCreateCommand = "mkdir " + folderName;
+	system(folderCreateCommand.c_str());	//Create the folder if not present.
 
 	
 	while(capture.read(src_img)){
@@ -62,7 +71,7 @@ int main(){
 //                        break;
 //                }
 
-//              waitKey(5);
+//              iwaitKey(5);
 clock_t begin = clock();
 #if 1
 //if(count){
@@ -82,13 +91,32 @@ clock_t begin = clock();
                 Mat faceROI = gray_img(faces[i]);
 		if(!faces.empty()){
 
+//To grab faces and store in separate jpg files.
+                if((faces[i].y - 20) >= 0)
+                faces[i].y -= 20;
+
+//                faces[i].width +=20;
+                faces[i].height+=20;
+
+                //Grab faces in sepaate matrix
+                Mat crop_img = src_img(faces[i]);
+
+                imshow("Crop", crop_img);
+                //Write in jpg file grabbed face
+                faceCount +=1;
+                sprintf(imageToSave,"%s//face%d.jpg",folderName.c_str(),faceCount);
+                imwrite(imageToSave, crop_img);
+
+
+
                 eye_cascade.detectMultiScale(faceROI, eyes, 1.11, 3, 0 |CASCADE_SCALE_IMAGE, Size(10,10));
                 for(size_t j=0; j<eyes.size(); j++){
                         Point center(faces[i].x + eyes[j].x + eyes[j].width * 0.5, faces[i].y + eyes[j].y + eyes[j].height * 0.5);
                         int radius = cvRound((eyes[j].width + eyes[i].height) * 0.25);
                         circle(src_img, center, radius, Scalar(255,0,0), 2, 8, 0);
                         }
-//                if(!eyes.empty())
+//                if(!eyes.empty())i
+//To show the rectangle on face
                 rectangle(src_img, pt1, pt2, Scalar(0,255,0),2, 8, 0);
 		}
                 }

@@ -81,7 +81,7 @@ clock_t begin = clock();
                 cvtColor(src_img,gray_img,CV_BGR2GRAY);
                 equalizeHist(gray_img,gray_img);
 //              face_cascade.detectMultiScale(gray_img, faces, 1.1, 2, CV_HAAR_SCALE_IMAGE | CV_HAAR_DO_CANNY_PRUNING, cvSize(0,0), cvSize(500,500));
-               face_cascade.detectMultiScale(gray_img, faces, 1.11, 3, 0 | CASCADE_SCALE_IMAGE, Size(10,10));
+               face_cascade.detectMultiScale(gray_img, faces, 1.11, 4, 0 | CASCADE_SCALE_IMAGE, Size(10,10));
 
                 for(int i = 0; i<faces.size(); i++){
 
@@ -95,7 +95,7 @@ clock_t begin = clock();
                 if((faces[i].y - 20) >= 0)
                 faces[i].y -= 20;
 
-//                faces[i].width +=20;
+                faces[i].width +=20;
                 faces[i].height+=20;
 
                 //Grab faces in sepaate matrix

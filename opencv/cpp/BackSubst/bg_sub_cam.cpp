@@ -1,4 +1,5 @@
 //opencvi 
+#include <opencv2/opencv.hpp>
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
@@ -24,9 +25,17 @@ int keyboard; //input from keyboard
 
 /** Function Headers */
 void help();
-void processVideo(char* videoFilename);
+void processVideo(char* videoFilename, char* cascadeFilename);
 //void processVideo();
 void processImages(char* firstFrameFilename);
+
+
+
+CvHaarClassifierCascade *cascade;
+CvMemStorage            *storage;
+
+void detect(IplImage *img);//, IplImage *img2);
+
 
 void help()
 {
@@ -63,11 +72,12 @@ int main(int argc, char* argv[])
     namedWindow("FG Mask MOG 2");
 
     //create Background Subtractor objects
-    pMOG2 = createBackgroundSubtractorMOG2(150,200,true); //MOG2 approach
+    pMOG2 = createBackgroundSubtractorMOG2(60,80,true); //MOG2 approach
+//pMOG2 = createBackgroundSubtractorMOG2(); //MOG2 approach
 #if 1
     if(strcmp(argv[1], "-vid") == 0) {
         //input data coming from a video
-        processVideo(argv[2]);
+        processVideo(argv[2], argv[3]);
     }
     else if(strcmp(argv[1], "-img") == 0) {
         //input data coming from a sequence of images
@@ -89,7 +99,7 @@ int main(int argc, char* argv[])
 /**
  * @function processVideo
  */
-void processVideo(char* videoFilename) {
+void processVideo(char* videoFilename, char* cascadeFilename) {
     //create the capture object
 //VideoCapture capture("rtsp://admin:12345@10.73.73.26/h264/ch1/main/av_stream?tcp");
 VideoCapture capture(videoFilename);
@@ -103,6 +113,23 @@ capture.set(CV_CAP_PROP_BUFFERSIZE, 500);
         cerr << "Unable to open video file: " << videoFilename << endl;
         exit(EXIT_FAILURE);
     }
+
+  CvCapture *cv_capture;
+  IplImage  *cap_frame;
+  int input_resize_percent = 100;
+
+  cascade = (CvHaarClassifierCascade*) cvLoad(cascadeFilename, 0, 0, 0);
+  storage = cvCreateMemStorage(0);
+  cv_capture = cvCaptureFromAVI(videoFilename);
+
+  assert(cascade && storage && cv_capture);
+
+  cvNamedWindow("video", 1);
+
+  IplImage* cap_frame1 = cvQueryFrame(cv_capture);
+  cap_frame = cvCreateImage(cvSize((int)((cap_frame1->width*input_resize_percent)/100) , (int)((cap_frame1->height*input_resize_percent)/100)), cap_frame1->depth, cap_frame1->nChannels);
+
+
     //read input data. ESC or 'q' for quitting
     while( (char)keyboard != 'q' && (char)keyboard != 27 ){
         //read the current frame
@@ -113,6 +140,57 @@ capture.set(CV_CAP_PROP_BUFFERSIZE, 500);
         }
         //update the background model
         pMOG2->apply(frame, fgMaskMOG2);
+
+        IplImage* dst_img;
+	IplImage* fg_img;
+        dst_img = cvCreateImage(cvSize(frame.cols,frame.rows),8,3);
+//	fg_img = cvCreateImage(cvSize(fgMaskMOG2.cols,fgMaskMOG2.rows),8,3);
+
+        IplImage ipltemp_dst=frame;
+//	IplImage ipltemp_fg=fgMaskMOG2;
+
+        cvCopy(&ipltemp_dst, dst_img);
+//	cvCopy(&ipltemp_fg, fg_img);
+
+//        detect(dst_img);//, fg_img);
+
+
+  CvSize img_size = cvGetSize(dst_img);
+  CvSeq *object = cvHaarDetectObjects(
+    dst_img,
+    cascade,
+    storage,
+    1.11, //1.1,//1.5, //-------------------SCALE FACTOR
+    5, //2        //------------------MIN NEIGHBOURS
+    0, //CV_HAAR_DO_CANNY_PRUNING
+    cvSize(0,0),//cvSize( 30,30), // ------MINSIZE
+    img_size //cvSize(70,70)//cvSize(640,480)  //---------MAXSIZE
+    );
+
+  std::cout << "Total: " << object->total << " cars detected." << std::endl;
+  for(int i = 0 ; i < ( object ? object->total : 0 ) ; i++)
+  {
+    CvRect *r = (CvRect*)cvGetSeqElem(object, i);
+//    cvRectangle(dst_img, cvPoint(r->x, r->y),cvPoint(r->x + r->width, r->y + r->height),CV_RGB(255, 0, 0), 2, 8, 0);
+rectangle(fgMaskMOG2, cvPoint(r->x, r->y), cvPoint(r->x + r->width, r->y + r->height), cv::Scalar(255,0,0),2, 8, 0);
+
+  }
+//cvShowImage("video", fgMaskMOG2);
+imshow("video", fgMaskMOG2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         //get the frame number and write it on the current frame
         stringstream ss;
         rectangle(frame, cv::Point(10, 2), cv::Point(100,20),
@@ -123,12 +201,17 @@ capture.set(CV_CAP_PROP_BUFFERSIZE, 500);
                 FONT_HERSHEY_SIMPLEX, 0.5 , cv::Scalar(0,0,0));
         //show the current frame and the fg masks
         imshow("Frame", frame);
-        imshow("FG Mask MOG 2", fgMaskMOG2);
+//        imshow("FG Mask MOG 2", fgMaskMOG2);
         //get the input from the keyboard
         keyboard = waitKey(30);
     }
     //delete capture object
     capture.release();
+  cvReleaseImage(&cap_frame);
+  cvReleaseCapture(&cv_capture);
+  cvReleaseHaarClassifierCascade(&cascade);
+  cvReleaseMemStorage(&storage);
+
 }
 
 
@@ -188,3 +271,33 @@ void processImages(char* fistFrameFilename) {
     }
 }
 #endif
+
+
+
+void detect(IplImage *img)//, IplImage *img2)
+{
+  CvSize img_size = cvGetSize(img);
+  CvSeq *object = cvHaarDetectObjects(
+    img,
+    cascade,
+    storage,
+    1.1, //1.1,//1.5, //-------------------SCALE FACTOR
+    3, //2        //------------------MIN NEIGHBOURS
+    0, //CV_HAAR_DO_CANNY_PRUNING
+    cvSize(0,0),//cvSize( 30,30), // ------MINSIZE
+    img_size //cvSize(70,70)//cvSize(640,480)  //---------MAXSIZE
+    );
+
+  std::cout << "Total: " << object->total << " cars detected." << std::endl;
+  for(int i = 0 ; i < ( object ? object->total : 0 ) ; i++)
+  {
+    CvRect *r = (CvRect*)cvGetSeqElem(object, i);
+    cvRectangle(img,
+      cvPoint(r->x, r->y),
+      cvPoint(r->x + r->width, r->y + r->height),
+      CV_RGB(255, 0, 0), 2, 8, 0);
+  }
+
+  cvShowImage("video", img);
+}
+
